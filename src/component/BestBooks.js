@@ -5,6 +5,9 @@ import Jumbotron from 'react-bootstrap/Jumbotron';
 import '../BestBooks.css';
 import axios from 'axios';
 import { ListGroup } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
+import BookForm from "./BookForm";
+import UpdateForm from "./UpdateForm";
 
 class MyFavoriteBooks extends React.Component {
   constructor() {
@@ -17,8 +20,16 @@ class MyFavoriteBooks extends React.Component {
       status: '',
       showUpdate: false,
       index: 0,
+      showAddForme: false,
     }
   }
+
+  showAddForme = () => {
+    this.setState({ showAddForme: !this.state.showAddForme, showUpdate: false });
+  };
+  closeAddForm = () => {
+    this.setState({ showAddForme: false, showUpdate: false });
+  };
 
   getUserInput = (e) => {
     console.log(e.target.value);
@@ -87,7 +98,6 @@ class MyFavoriteBooks extends React.Component {
       bookDescription: this.state.description,
       email: this.props.auth0.user.email,
     };
-    console.log(reqBody);
     await axios.put(`${process.env.REACT_APP_SERVER_URL}/book/${this.state.index}`, reqBody).then((res) => {
       this.setState({
         book: res.data.books,
@@ -102,47 +112,43 @@ class MyFavoriteBooks extends React.Component {
         <p>
           This is a collection of my favorite books
         </p>
-        <form onSubmit={(e) => this.addBook(e)}>
-          <label>Name of the Book</label>
-          <input onChange={this.updateName} type="text" />
+        <Button
+          onClick={this.showAddForme}
+          style={{ marginBottom: "30px", backgroundColor: "#5E8B7E", color: "white", border: "none" }}
+        >
+          ADD NEW BOOK
+        </Button>
 
-          <label>Description of the Book</label>
-          <input onChange={this.updateDisc} type="text" />
-
-          <label>Status of the Book</label>
-          <input onChange={this.updateStatus} type="text" />
-
-          <input type="submit" value="Add New Book" />
-        </form>
-
+        {this.state.showAddForme && (
+          <BookForm
+            closeAddForm={this.closeAddForm}
+            addBook={this.addBook}
+            updateName={this.updatekName}
+            updateDisc={this.updateDisc}
+            updateStatus={this.updateStatus}
+          />
+        )}
 
         {this.state.showUpdate && (
-          <form onSubmit={(e) => this.update(e)}>
-          <fieldset>
-            <legend>Update Form</legend>
-
-            <label>Name of the Book</label>
-            <input onChange={(e) => this.updateName(e)} type="text" />
-
-            <label>status</label>
-            <input onChange={(e) => this.updateStatus(e)} type="text" />
-
-            <label>description</label>
-            <input onChange={(e) => this.updateDisc(e)} type="text" />
-
-            <input type="submit" value="Update Book" />
-          </fieldset>
-        </form>
+          <UpdateForm
+            update={this.update}
+            updateName={this.updateName}
+            updateDisc={this.updateDisc}
+            updateStatus={this.updateStatus}
+            book={this.state.book[this.state.index]}
+          />
         )}
 
         <from>
           <input type='text' placeholder="email" onChange={this.getUserInput} />
           < button onClick={(e) => { this.sendRequest(e) }}>search by email</button>
-        </from>
-        {
+        </from> 
+
+
+         {
           this.state.listBooks.map(book => {
             console.log(book.books);
-            return book.books.map(item => {
+            return book.books.map((item, indx) => {
               console.log(item.name);
               return <>
                 <ListGroup horizontal={item} className="my-2" >
@@ -150,6 +156,21 @@ class MyFavoriteBooks extends React.Component {
                   <ListGroup.Item variant="dark">decription:{item.decription}</ListGroup.Item>
                   <ListGroup.Item variant="dark">status: {item.status}</ListGroup.Item>
                 </ListGroup>
+
+                <Button
+                  className="m-3 btn btn-danger"
+                  onClick={() => this.deleteBook(indx)}
+                  style={{ backgroundColor: "#2F5D62", color: "white", border: "none" }}
+                >
+                  Delete Book
+                </Button>
+                <Button
+                  className="m-3"
+                  onClick={() => this.showUpdateForm(indx)}
+                  style={{ backgroundColor: "#5E8B7E", color: "white", border: "none" }}
+                >
+                  Update Book
+                </Button>
               </>
             })
           })
